@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Current Time in Oxford</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #141e30, #243b55);
+      margin: 0;
+      padding: 2em;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .card {
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 2em;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(12px);
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+    }
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.6em;
+      color: #ffcc70;
+    }
+    .clock {
+      font-size: 2.8em;
+      font-weight: bold;
+      margin: 0.5em 0;
+      letter-spacing: 2px;
+      color: #00ffcc;
+      text-shadow: 0 0 10px rgba(0, 255, 204, 0.7);
+    }
+    .info {
+      margin: 0.6em 0;
+      font-size: 1.05em;
+      color: #e5e5e5;
+    }
+    .info strong {
+      color: #ffcc70;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="card" id="timeCard">
+    <h2>Loading...</h2>
+  </div>
+
+  <script>
+    (async function () {
+      const apiKey = "e837f8f8b72143198807a5d07e6c1c43";  
+      const location = encodeURIComponent("Oxford, United Kingdom");
+      const url = `https://timezone.abstractapi.com/v1/current_time/?api_key=${apiKey}&location=${location}`;
+
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`HTTP error: ${resp.status}`);
+        const data = await resp.json();
+
+        const card = document.getElementById("timeCard");
+        card.innerHTML = `
+          <h2>🕒 Time in ${data.requested_location}</h2>
+          <div class="clock" id="clock"></div>
+          <div class="info"><strong>Timezone:</strong> ${data.timezone_name} (${data.timezone_abbreviation})</div>
+          <div class="info"><strong>GMT Offset:</strong> UTC${data.gmt_offset >= 0 ? '+' : ''}${data.gmt_offset}</div>
+          <div class="info"><strong>Daylight Saving?</strong> ${data.is_dst ? "✅ Yes" : "❌ No"}</div>
+        `;
+
+        // Get initial time from API
+        let oxfordTime = new Date(data.datetime);
+
+        // Update clock every second
+        function updateClock() {
+          oxfordTime.setSeconds(oxfordTime.getSeconds() + 1); // Tick forward
+          document.getElementById("clock").textContent =
+            oxfordTime.toLocaleTimeString("en-US", { hour12: true }); // 12h format
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+      } catch (err) {
+        document.getElementById("timeCard").innerHTML = `<h2>Error: ${err.message}</h2>`;
+      }
+    })();
+  </script>
+</body>
+</html>
